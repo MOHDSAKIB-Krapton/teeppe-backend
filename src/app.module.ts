@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -8,7 +9,9 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true, // Make the config module globally available
       envFilePath: '.env', // Specify the .env file
     }),
-    RestaurantModule],
+    MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING),
+    RestaurantModule,
+  ],
 
   
 })
