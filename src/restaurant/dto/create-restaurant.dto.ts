@@ -1,4 +1,5 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsArray, IsDefined, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
 
 export class CreateRestaurantDto {
 
@@ -37,11 +38,31 @@ export class CreateRestaurantDto {
     restaurant_images: string[];
 
     @IsString()
-    category:string;
+    category: string;
 
     @IsNumber()
     zipcode: number;
 
     @IsString()
     full_address: string;
+
+    @IsArray()
+    @ValidateNested({ each: true })  // Validate each object in the array
+    @Type(() => OpeningHoursDto)  // Transform each item into OpeningHoursDto
+    @IsDefined()  // Ensure the array is defined
+    opening_hours: OpeningHoursDto[];
+}
+
+class OpeningHoursDto {
+    @IsString()
+    @IsNotEmpty()
+    day: string;  // e.g., 'Monday'
+
+    @IsString()
+    @IsNotEmpty()
+    openedtime: string;  // e.g., '08:00 AM'
+
+    @IsString()
+    @IsNotEmpty()
+    closedtime: string;  // e.g., '10:00 PM'
 }
