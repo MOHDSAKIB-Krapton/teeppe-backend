@@ -9,7 +9,7 @@ let cachedServer: any;
 // Function to bootstrap the app locally (for development)
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('/api/v1');
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
 }
@@ -18,7 +18,7 @@ async function bootstrap() {
 async function bootstrapServer() {
   const expressApp = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('/api/v1');
   await app.init();
   return createServer(expressApp);
 }
