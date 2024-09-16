@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { RestaurantModule } from './restaurant/restaurant.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
     MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING),
     RestaurantModule,
+    UsersModule,
   ],
 
   

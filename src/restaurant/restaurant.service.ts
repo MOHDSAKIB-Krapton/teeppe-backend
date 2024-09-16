@@ -21,7 +21,7 @@ export class RestaurantService {
             // Check for duplicate restaurant by name and owner (optional, depending on your use case)
             const existingRestaurant = await this.restaurantModel.findOne({
                 restaurant_name: createRestaurantDto.restaurant_name,
-                owner_name: createRestaurantDto.owner_name,
+                owner: createRestaurantDto.owner,
             });
 
             if (existingRestaurant) {

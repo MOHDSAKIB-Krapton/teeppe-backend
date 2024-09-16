@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+import { User } from 'src/users/schemas/user.schema';
 
 export type RestaurantDocument = Restaurant & Document;
 
@@ -9,8 +10,8 @@ export class Restaurant {
   @Prop({ required: true })  // Making restaurant_name required
   restaurant_name: string;
 
-  @Prop({ required: true })  // Making owner_name required
-  owner_name: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })  // Linking to User schema by ObjectId
+  owner: User | Types.ObjectId;  // Either store the entire user object or just the ObjectId
 
   @Prop()
   phone_number: number;
@@ -52,8 +53,9 @@ export class Restaurant {
     type: [
       {
         day: { type: String, required: true },  // e.g., 'Monday'
-        openedtime: { type: String, required: true },  // e.g., '08:00 AM'
-        closedtime: { type: String, required: true },  // e.g., '10:00 PM'
+        openedtime: { type: String, required: function () { return !this.is_closed; } },  // Required only if is_closed is false
+        closedtime: { type: String, required: function () { return !this.is_closed; } },  // Required only if is_closed is false
+        is_closed: { type: Boolean, required: true }  // Indicate if the restaurant is closed on this day
       }
     ],
     required: true,  // Ensure that this field is required

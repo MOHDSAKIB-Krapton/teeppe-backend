@@ -1,21 +1,15 @@
 import { Type } from "class-transformer";
-import { IsArray, IsDefined, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsDefined, IsNotEmpty, IsNumber, IsString, ValidateIf, ValidateNested } from "class-validator";
 
 export class CreateRestaurantDto {
 
     @IsString()
     @IsNotEmpty()
-    restaurant_name: string;
+    owner: string;
 
     @IsString()
     @IsNotEmpty()
-    owner_name: string;
-
-    @IsNumber()
-    phone_number: number;
-
-    @IsString()
-    email:string;
+    restaurant_name: string;
 
     @IsString()
     @IsNotEmpty()
@@ -64,11 +58,17 @@ class OpeningHoursDto {
     @IsNotEmpty()
     day: string;  // e.g., 'Monday'
 
+    @ValidateIf(o => !o.is_closed)  // Validate only if is_closed is false
     @IsString()
     @IsNotEmpty()
     openedtime: string;  // e.g., '08:00 AM'
 
+    @ValidateIf(o => !o.is_closed)  // Validate only if is_closed is false
     @IsString()
     @IsNotEmpty()
     closedtime: string;  // e.g., '10:00 PM'
+
+    @IsBoolean()
+    @IsNotEmpty()
+    is_closed: boolean;  // Indicates if the restaurant is closed on this day
 }
