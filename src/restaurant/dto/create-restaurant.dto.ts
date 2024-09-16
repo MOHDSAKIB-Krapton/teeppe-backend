@@ -11,6 +11,12 @@ export class CreateRestaurantDto {
     @IsNotEmpty()
     owner_name: string;
 
+    @IsNumber()
+    phone_number: number;
+
+    @IsString()
+    email:string;
+
     @IsString()
     @IsNotEmpty()
     state: string;

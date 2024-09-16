@@ -13,6 +13,12 @@ export class Restaurant {
   owner_name: string;
 
   @Prop()
+  phone_number: number;
+
+  @Prop()
+  email: string;
+
+  @Prop()
   state: string;
 
   @Prop()
