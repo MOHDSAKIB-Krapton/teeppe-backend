@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
-import { CreateRestaurantDto } from './dto/create-restaurant.dto';
+import { RegisterRestaurantDto } from './dto/register-restaurant-with-user.dto';
 
 @Controller('restaurant')
 export class RestaurantController {
@@ -9,8 +9,9 @@ export class RestaurantController {
     ) { }
 
     @Post('/register')
-    async registerRestaurant(@Body() createRestaurant: CreateRestaurantDto) {
-        return await this.restaurantService.registerRestaurant(createRestaurant)
+    async registerRestaurant(@Body() registerRestaurantDto: RegisterRestaurantDto) {
+        const { user, restaurant } = registerRestaurantDto;
+        return await this.restaurantService.registerRestaurant(user, restaurant);
     }
 
     @Get()

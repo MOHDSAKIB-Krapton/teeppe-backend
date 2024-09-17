@@ -2,48 +2,79 @@ import { BadRequestException, ConflictException, Injectable, InternalServerError
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Restaurant, RestaurantDocument } from './schemas/restaurant.schema';
-import { Model } from 'mongoose';
+import { Document, Model } from 'mongoose';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UsersService } from 'src/users/users.service';
+import { UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class RestaurantService {
 
     constructor(
         @InjectModel(Restaurant.name) private restaurantModel: Model<RestaurantDocument>,
+        private readonly usersService: UsersService
     ) { }
 
     /**
-   * Register a new restaurant
-   * @param createRestaurantDto Data Transfer Object for restaurant creation
-   * @returns Newly created restaurant document or error message
-   */
-    async registerRestaurant(createRestaurantDto: CreateRestaurantDto): Promise<Restaurant> {
+     * Register a new restaurant
+     * @param createUser Data Transfer Object for user creation
+     * @param createRestaurant Data Transfer Object for restaurant creation
+     * @returns Newly created restaurant document or error message
+     */
+    async registerRestaurant(
+        createUser: CreateUserDto,
+        createRestaurant: CreateRestaurantDto
+    ): Promise<Restaurant> {
+        let user: UserDocument | undefined;
+        let restaurant: RestaurantDocument | undefined;
+
         try {
-            // Check for duplicate restaurant by name and owner (optional, depending on your use case)
+            // Step 1: Create the user first
+            user = await this.usersService.createUser(createUser);
+
+            // Step 2: Check for duplicate restaurant by name and owner
             const existingRestaurant = await this.restaurantModel.findOne({
-                restaurant_name: createRestaurantDto.restaurant_name,
-                owner: createRestaurantDto.owner,
+                restaurant_name: createRestaurant.restaurant_name,
+                owner: user._id,  // Check against the newly created user ID
             });
 
             if (existingRestaurant) {
                 throw new ConflictException('Restaurant with the same name and owner already exists.');
             }
 
-            // Create a new restaurant document from DTO
-            const newRestaurant = new this.restaurantModel(createRestaurantDto);
+            // Step 3: Prepare restaurant data with the new owner (user ID)
+            const restaurantData = {
+                ...createRestaurant,
+                owner: user._id,  // Link the restaurant to the user ID
+            };
 
-            // Save the document to the database
-            return await newRestaurant.save();
+            // Step 4: Create and save the new restaurant document
+            restaurant = new this.restaurantModel(restaurantData);
+            return await restaurant.save();
+
         } catch (error) {
-            // Handle Mongoose validation errors or other server errors
-            if (error.name === 'ValidationError') {
+            // Step 5: Error handling
+            if (error instanceof ConflictException) {
+                throw error; // Re-throw the specific ConflictException
+            } else if (error.name === 'ValidationError') {
                 throw new BadRequestException('Invalid data provided.');
-            } else if (error.code === 11000) { // Handling unique index violation (duplicate error)
-                throw new ConflictException('Duplicate entry detected.');
             } else {
                 throw new InternalServerErrorException('An error occurred while creating the restaurant.');
             }
+        } finally {
+            // Step 6: Rollback if restaurant creation fails
+            if (user && !restaurant) {
+                try {
+                    await this.usersService.deleteUserById(user._id.toString());
+                    console.log(`User with ID ${user._id} deleted after failed restaurant registration.`);
+                } catch (deletionError) {
+                    console.error(`Failed to delete user with ID ${user._id}:`, deletionError);
+                }
+            }
         }
     }
+
+
 
     /**
      * Get the list of all restaurants
