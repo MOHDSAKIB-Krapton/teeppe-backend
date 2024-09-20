@@ -48,6 +48,9 @@ export class Restaurant {
   @Prop({ required: true }) // Full address is required
   full_address: string;
 
+  @Prop({ type: Boolean, default: false }) // Default value is false
+  is_verified_by_admin: boolean;
+
   @Prop({
     type: [
       {

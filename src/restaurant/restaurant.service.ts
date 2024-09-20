@@ -104,6 +104,67 @@ export class RestaurantService {
   }
 
   /**
+   * Method to get restaurants by their verification status.
+   * @param isVerified - A boolean indicating whether to fetch verified (true) or unverified (false) restaurants.
+   * @returns A list of restaurants matching the verification status.
+   */
+  async getRestaurantsByVerification(
+    isVerified: boolean,
+  ): Promise<Restaurant[]> {
+    console.log('Verified => ', isVerified);
+    try {
+      // Query the database to find restaurants based on the `is_verified_by_admin` status
+      // const restaurants = await this.restaurantModel
+      //   .find({ is_verified_by_admin: isVerified })
+      //   .exec();
+
+      // console.log(JSON.stringify(restaurants, null, 2));
+
+      // Query the database to find restaurants based on the `is_verified_by_admin` status
+      // const query = this.restaurantModel.find({
+      //   is_verified_by_admin: isVerified,
+      // });
+
+      // // You can print the query to ensure it's correct
+      // console.log('MongoDB Query: ', query.getQuery());
+
+      // const restaurants = await query.lean().exec();
+
+      // console.log(
+      //   'Restaurants fetched: ',
+      //   JSON.stringify(restaurants, null, 2),
+      // );
+
+      // // Return the list of restaurants
+      // return restaurants;
+
+      // Cast the query to ensure boolean comparison
+      const restaurants = await this.restaurantModel
+        .find({ is_verified_by_admin: Boolean(isVerified) }) // Explicitly cast to boolean
+        .lean() // Ensure lean is used for plain JavaScript objects
+        .exec();
+
+      console.log(
+        'Restaurants fetched: ',
+        JSON.stringify(restaurants, null, 2),
+      );
+
+      return restaurants;
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error(
+        'Error fetching restaurants by verification status:',
+        error,
+      );
+
+      // Throw a 500 Internal Server Error with a descriptive message
+      throw new InternalServerErrorException(
+        'Failed to fetch restaurants based on verification status. Please try again later.',
+      );
+    }
+  }
+
+  /**
    * Get a restaurant by ID
    * @param id Restaurant's unique MongoDB ID
    * @returns Restaurant document or error message
