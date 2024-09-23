@@ -113,41 +113,11 @@ export class RestaurantService {
   ): Promise<Restaurant[]> {
     console.log('Verified => ', isVerified);
     try {
-      // Query the database to find restaurants based on the `is_verified_by_admin` status
-      // const restaurants = await this.restaurantModel
-      //   .find({ is_verified_by_admin: isVerified })
-      //   .exec();
-
-      // console.log(JSON.stringify(restaurants, null, 2));
-
-      // Query the database to find restaurants based on the `is_verified_by_admin` status
-      // const query = this.restaurantModel.find({
-      //   is_verified_by_admin: isVerified,
-      // });
-
-      // // You can print the query to ensure it's correct
-      // console.log('MongoDB Query: ', query.getQuery());
-
-      // const restaurants = await query.lean().exec();
-
-      // console.log(
-      //   'Restaurants fetched: ',
-      //   JSON.stringify(restaurants, null, 2),
-      // );
-
-      // // Return the list of restaurants
-      // return restaurants;
-
       // Cast the query to ensure boolean comparison
       const restaurants = await this.restaurantModel
         .find({ is_verified_by_admin: Boolean(isVerified) }) // Explicitly cast to boolean
         .lean() // Ensure lean is used for plain JavaScript objects
         .exec();
-
-      console.log(
-        'Restaurants fetched: ',
-        JSON.stringify(restaurants, null, 2),
-      );
 
       return restaurants;
     } catch (error) {
@@ -171,7 +141,9 @@ export class RestaurantService {
    */
   async getRestaurantById(id: string): Promise<Restaurant> {
     try {
-      const restaurant = await this.restaurantModel.findById(id).exec();
+      const restaurant = await (
+        await this.restaurantModel.findById(id)
+      ).populate('owner');
       if (!restaurant) {
         throw new NotFoundException(`Restaurant with ID "${id}" not found.`);
       }
