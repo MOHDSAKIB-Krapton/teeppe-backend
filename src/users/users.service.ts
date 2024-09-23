@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -62,6 +63,43 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`); // Throwing an error if user is not found
     }
     return user;
+  }
+
+  /**
+   * @description Update a user by their ID
+   * @param id - The ID of the user to update
+   * @param updateUserDto - DTO containing updated user data
+   * @returns The updated user
+   */
+  async updateUserById(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<UserDocument> {
+    try {
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(id, updateUserDto, {
+          new: true,
+          runValidators: true,
+        }) // Returns the updated user
+        .exec();
+
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      return updatedUser;
+    } catch (error) {
+      if (error.code === 11000) {
+        // MongoDB duplicate key error code
+        throw new ConflictException('User with this email already exists.');
+      } else if (error.name === 'ValidationError') {
+        throw new BadRequestException('Validation failed. Invalid user data.');
+      } else {
+        throw new InternalServerErrorException(
+          'An error occurred while updating the user.',
+        );
+      }
+    }
   }
 
   /**
