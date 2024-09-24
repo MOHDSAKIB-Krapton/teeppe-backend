@@ -29,15 +29,14 @@ export class RestaurantService {
    * @returns Newly created restaurant document or error message
    */
   async registerRestaurant(
-    createUser: CreateUserDto,
     createRestaurant: CreateRestaurantDto,
   ): Promise<Restaurant> {
     let user: UserDocument | undefined;
     let restaurant: RestaurantDocument | undefined;
 
     try {
-      // Step 1: Create the user first
-      user = await this.usersService.createUser(createUser);
+      // // Step 1: Create the user first
+      // user = await this.usersService.createUser(createUser);
 
       // Step 2: Check for duplicate restaurant by name and owner
       const existingRestaurant = await this.restaurantModel.findOne({

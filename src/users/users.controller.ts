@@ -23,7 +23,7 @@ export class UsersController {
    * @param createUserDto - Data Transfer Object containing user data (phone number, email, first name, last name)
    * @returns The newly created user
    */
-  @Post()
+  @Post('create-user')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await this.userService.createUser(createUserDto);
   }

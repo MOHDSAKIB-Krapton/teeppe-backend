@@ -9,19 +9,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
-import { RegisterRestaurantDto } from './dto/register-restaurant-with-user.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 
 @Controller('restaurant')
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
   @Post('/register')
-  async registerRestaurant(
-    @Body() registerRestaurantDto: RegisterRestaurantDto,
-  ) {
-    const { user, restaurant } = registerRestaurantDto;
-    return await this.restaurantService.registerRestaurant(user, restaurant);
+  async registerRestaurant(@Body() createRestaurantDto: CreateRestaurantDto) {
+    return await this.restaurantService.registerRestaurant(createRestaurantDto);
   }
 
   /**
