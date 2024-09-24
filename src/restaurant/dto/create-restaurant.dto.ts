@@ -3,6 +3,7 @@ import {
   IsArray,
   IsBoolean,
   IsDefined,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -14,6 +15,10 @@ export class CreateRestaurantDto {
   @IsString()
   @IsNotEmpty()
   restaurant_name: string;
+
+  @IsMongoId()
+  @IsNotEmpty()
+  owner: string;
 
   @IsString()
   @IsNotEmpty()
@@ -49,6 +54,9 @@ export class CreateRestaurantDto {
 
   @IsString()
   full_address: string;
+
+  @IsNumber()
+  booking_price: number;
 
   @IsArray()
   @ValidateNested({ each: true }) // Validate each object in the array

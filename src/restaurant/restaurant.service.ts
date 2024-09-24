@@ -8,18 +8,16 @@ import {
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Restaurant, RestaurantDocument } from './schemas/restaurant.schema';
-import { Document, Model } from 'mongoose';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { UsersService } from 'src/users/users.service';
-import { UserDocument } from 'src/users/schemas/user.schema';
+import { Model } from 'mongoose';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class RestaurantService {
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
-    private readonly usersService: UsersService,
+    private usersService: UsersService,
   ) {}
 
   /**
@@ -31,17 +29,19 @@ export class RestaurantService {
   async registerRestaurant(
     createRestaurant: CreateRestaurantDto,
   ): Promise<Restaurant> {
-    let user: UserDocument | undefined;
     let restaurant: RestaurantDocument | undefined;
 
     try {
-      // // Step 1: Create the user first
-      // user = await this.usersService.createUser(createUser);
+      // Step 1: Fetch the owner by their ID
+      const owner = await this.usersService.getUserById(createRestaurant.owner);
+      if (!owner) {
+        throw new NotFoundException('Owner not found.');
+      }
 
       // Step 2: Check for duplicate restaurant by name and owner
       const existingRestaurant = await this.restaurantModel.findOne({
         restaurant_name: createRestaurant.restaurant_name,
-        owner: user._id, // Check against the newly created user ID
+        owner: createRestaurant.owner, // Check against the owner's ID
       });
 
       if (existingRestaurant) {
@@ -50,15 +50,15 @@ export class RestaurantService {
         );
       }
 
-      // Step 3: Prepare restaurant data with the new owner (user ID)
-      const restaurantData = {
-        ...createRestaurant,
-        owner: user._id, // Link the restaurant to the user ID
-      };
+      // Step 3: Create and save the new restaurant document
+      restaurant = new this.restaurantModel(createRestaurant);
+      await restaurant.save();
 
-      // Step 4: Create and save the new restaurant document
-      restaurant = new this.restaurantModel(restaurantData);
-      return await restaurant.save();
+      // Step 4: Update the user's restaurants array
+      owner.restaurants.push(String(restaurant._id)); // Add the newly created restaurant's ID to the user's restaurants array
+      await owner.save(); // Save the updated user document
+
+      return restaurant;
     } catch (error) {
       // Step 5: Error handling
       if (error instanceof ConflictException) {
@@ -69,21 +69,6 @@ export class RestaurantService {
         throw new InternalServerErrorException(
           'An error occurred while creating the restaurant.',
         );
-      }
-    } finally {
-      // Step 6: Rollback if restaurant creation fails
-      if (user && !restaurant) {
-        try {
-          await this.usersService.deleteUserById(user._id.toString());
-          console.log(
-            `User with ID ${user._id} deleted after failed restaurant registration.`,
-          );
-        } catch (deletionError) {
-          console.error(
-            `Failed to delete user with ID ${user._id}:`,
-            deletionError,
-          );
-        }
       }
     }
   }

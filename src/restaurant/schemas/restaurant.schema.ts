@@ -4,6 +4,15 @@ import { User } from 'src/users/schemas/user.schema';
 
 export type RestaurantDocument = Restaurant & Document;
 
+export enum RestaurantStatus {
+  BLOCKED = 'blocked',
+  PAUSED = 'paused',
+  PENDING = 'pending',
+  VERIFIED = 'verified',
+  ACTIVE = 'active', // Add other statuses as needed
+  INACTIVE = 'inactive',
+}
+
 @Schema({ timestamps: true }) // Adding timestamps for createdAt and updatedAt
 export class Restaurant {
   @Prop({ required: true }) // Making restaurant_name required
@@ -50,6 +59,16 @@ export class Restaurant {
 
   @Prop({ type: Boolean, default: false }) // Default value is false
   is_verified_by_admin: boolean;
+
+  @Prop({ required: true })
+  booking_price: number;
+
+  @Prop({
+    type: String,
+    enum: RestaurantStatus,
+    default: RestaurantStatus.PENDING, // Default status when a restaurant is created
+  })
+  status: RestaurantStatus;
 
   @Prop({
     type: [

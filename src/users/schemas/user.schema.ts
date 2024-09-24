@@ -19,6 +19,9 @@ export class User {
 
   @Prop({ required: true }) // Last name is required
   last_name: string;
+
+  @Prop()
+  restaurants: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
