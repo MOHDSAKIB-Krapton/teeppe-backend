@@ -95,7 +95,7 @@ export class RestaurantService {
    */
   async getAllRestaurants(): Promise<Restaurant[]> {
     try {
-      return await this.restaurantModel.find().exec();
+      return await this.restaurantModel.find().populate('owner').exec();
     } catch (error) {
       throw new InternalServerErrorException(
         'An error occurred while fetching the list of restaurants.',
@@ -115,7 +115,8 @@ export class RestaurantService {
     try {
       // Cast the query to ensure boolean comparison
       const restaurants = await this.restaurantModel
-        .find({ is_verified_by_admin: Boolean(isVerified) }) // Explicitly cast to boolean
+        .find({ is_verified_by_admin: Boolean(isVerified) })
+        .populate('owner') // Explicitly cast to boolean
         .lean() // Ensure lean is used for plain JavaScript objects
         .exec();
 
