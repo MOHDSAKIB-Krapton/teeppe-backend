@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -10,11 +12,16 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { RestaurantService } from 'src/restaurant/restaurant.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>, // Injecting the Mongoose User model
+
+    // Using this forwerdref to avoid circular dependency of restaurant and user module
+    @Inject(forwardRef(() => RestaurantService)) // Use forwardRef to inject UsersService
+    private readonly restaurantService: RestaurantService,
   ) {}
 
   /**
@@ -66,6 +73,19 @@ export class UsersService {
   }
 
   /**
+   * @description Get a single user by their UID
+   * @param uid - The UID of the user to retrieve
+   * @returns The user with the given UID
+   */
+  async getUserByUid(uid: string): Promise<UserDocument> {
+    const user = await this.userModel.findOne({ uid }).exec(); // Finding user by `uid` field
+    if (!user) {
+      throw new NotFoundException(`User with UID ${uid} not found`); // Throwing an error if user is not found
+    }
+    return user;
+  }
+
+  /**
    * @description Update a user by their ID
    * @param id - The ID of the user to update
    * @param updateUserDto - DTO containing updated user data
@@ -108,10 +128,25 @@ export class UsersService {
    * @returns A success message or an error if the user doesn't exist
    */
   async deleteUserById(id: string): Promise<{ message: string }> {
-    const result = await this.userModel.findByIdAndDelete(id).exec();
-    if (!result) {
-      throw new NotFoundException(`User with ID ${id} not found`); // Throwing an error if user is not found
+    // Find the user by ID
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`); // Throw an error if the user is not found
     }
-    return { message: 'User successfully deleted' }; // Returning a success message
+
+    // If the user has associated restaurants, delete them
+    if (user.restaurants && user.restaurants.length > 0) {
+      await Promise.all(
+        user.restaurants.map(async (restaurantId: string) => {
+          await this.restaurantService.deleteRestaurantById(restaurantId); // Call delete method from RestaurantService
+        }),
+      );
+    }
+
+    // Delete the user
+    await this.userModel.findByIdAndDelete(id).exec();
+
+    return { message: 'User and associated restaurants successfully deleted' };
   }
 }

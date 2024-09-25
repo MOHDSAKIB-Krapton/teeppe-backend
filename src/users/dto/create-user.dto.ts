@@ -1,5 +1,9 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
+export enum UserRole {
+  Partner = 'partner',
+  Admin = 'admin',
+}
 export class CreateUserDto {
   @IsString()
   uid: string;
@@ -15,4 +19,7 @@ export class CreateUserDto {
 
   @IsString()
   last_name: string;
+
+  @IsOptional()
+  role?: UserRole;
 }

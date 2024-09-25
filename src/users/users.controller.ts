@@ -48,6 +48,16 @@ export class UsersController {
   }
 
   /**
+   * @description Get a single user by their UID
+   * @param uid - The UID of the user to retrieve
+   * @returns The user with the given UID
+   */
+  @Get('uid/:uid')
+  async getUserByUid(@Param('uid') uid: string) {
+    return await this.userService.getUserByUid(uid);
+  }
+
+  /**
    * @description Update a user by ID
    * @param id - The user ID
    * @param updateUserDto - DTO containing updated user data

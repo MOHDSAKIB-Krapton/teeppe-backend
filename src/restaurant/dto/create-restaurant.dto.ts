@@ -3,18 +3,30 @@ import {
   IsArray,
   IsBoolean,
   IsDefined,
+  IsEmail,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
+  IsPhoneNumber,
   IsString,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import { RestaurantStatus } from '../schemas/restaurant.schema';
 
 export class CreateRestaurantDto {
   @IsString()
   @IsNotEmpty()
   restaurant_name: string;
+
+  @IsPhoneNumber()
+  @IsNotEmpty()
+  phone_number: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
   @IsMongoId()
   @IsNotEmpty()
@@ -57,6 +69,9 @@ export class CreateRestaurantDto {
 
   @IsNumber()
   booking_price: number;
+
+  @IsOptional()
+  is_verified_by_admin: RestaurantStatus;
 
   @IsArray()
   @ValidateNested({ each: true }) // Validate each object in the array

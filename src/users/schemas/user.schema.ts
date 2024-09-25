@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { UserRole } from '../dto/create-user.dto';
 
 export type UserDocument = User & Document;
 
@@ -22,6 +23,9 @@ export class User {
 
   @Prop()
   restaurants: string[];
+
+  @Prop({ required: true, default: UserRole.Partner })
+  role: UserRole;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

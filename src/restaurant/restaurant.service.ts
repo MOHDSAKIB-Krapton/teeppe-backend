@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -17,7 +19,10 @@ export class RestaurantService {
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
-    private usersService: UsersService,
+
+    // Using this forwerdref to avoid circular dependency of restaurant and user module
+    @Inject(forwardRef(() => UsersService)) // Use forwardRef to inject UsersService
+    private readonly usersService: UsersService,
   ) {}
 
   /**

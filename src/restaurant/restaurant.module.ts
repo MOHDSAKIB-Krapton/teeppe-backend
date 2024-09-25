@@ -1,17 +1,19 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { RestaurantService } from './restaurant.service';
 import { RestaurantController } from './restaurant.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Restaurant, RestaurantSchema } from './schemas/restaurant.schema';
-import { UsersService } from 'src/users/users.service';
 import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Restaurant.name, schema: RestaurantSchema }]),
-    UsersModule
+    forwardRef(() => UsersModule),
+    MongooseModule.forFeature([
+      { name: Restaurant.name, schema: RestaurantSchema },
+    ]),
   ],
   providers: [RestaurantService],
-  controllers: [RestaurantController]
+  controllers: [RestaurantController],
+  exports: [RestaurantService],
 })
-export class RestaurantModule { }
+export class RestaurantModule {}
