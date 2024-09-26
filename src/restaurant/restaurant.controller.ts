@@ -11,6 +11,7 @@ import {
 import { RestaurantService } from './restaurant.service';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
+import { RestaurantStatus } from './schemas/restaurant.schema';
 
 @Controller('restaurant')
 export class RestaurantController {
@@ -29,14 +30,10 @@ export class RestaurantController {
    */
   @Get()
   async getRestaurants(
-    @Query('is_verified_by_admin') isVerified?: string, // Optional query parameter
+    @Query('is_verified_by_admin') isVerified?: RestaurantStatus, // Optional query parameter
   ) {
     if (isVerified !== undefined) {
-      // Convert the query string 'true'/'false' to a boolean
-      const isVerifiedBool = isVerified === 'true';
-      return this.restaurantService.getRestaurantsByVerification(
-        isVerifiedBool,
-      );
+      return this.restaurantService.getRestaurantsByVerification(isVerified);
     } else {
       // No query parameter provided, return all restaurants
       return this.restaurantService.getAllRestaurants();

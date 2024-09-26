@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Restaurant, RestaurantDocument } from './schemas/restaurant.schema';
+import {
+  Restaurant,
+  RestaurantDocument,
+  RestaurantStatus,
+} from './schemas/restaurant.schema';
 import { Model } from 'mongoose';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { UsersService } from 'src/users/users.service';
@@ -98,13 +102,12 @@ export class RestaurantService {
    * @returns A list of restaurants matching the verification status.
    */
   async getRestaurantsByVerification(
-    isVerified: boolean,
+    isVerified: RestaurantStatus,
   ): Promise<Restaurant[]> {
-    console.log('Verified => ', isVerified);
     try {
       // Cast the query to ensure boolean comparison
       const restaurants = await this.restaurantModel
-        .find({ is_verified_by_admin: Boolean(isVerified) })
+        .find({ is_verified_by_admin: isVerified })
         .populate('owner') // Explicitly cast to boolean
         .lean() // Ensure lean is used for plain JavaScript objects
         .exec();
