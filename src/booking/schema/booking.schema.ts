@@ -15,11 +15,8 @@ export class Booking {
   @Prop({ required: true })
   customer_contact: string; // Can be email or phone number
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: 2 })
   number_of_guests: number;
-
-  @Prop({ required: true })
-  is_verified: boolean;
 
   @Prop({ required: true })
   booking_time: Date; // Time at which the booking starts
