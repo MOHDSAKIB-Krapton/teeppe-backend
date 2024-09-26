@@ -69,6 +69,9 @@ export class Restaurant {
   @Prop({ required: true })
   booking_price: number;
 
+  @Prop({ default: [], type: [{ type: Types.ObjectId, ref: 'Booking' }] })
+  bookings: Types.ObjectId[];
+
   @Prop({
     type: [
       {

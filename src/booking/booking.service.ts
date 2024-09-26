@@ -5,15 +5,21 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { Model, Types } from 'mongoose';
+import { BookingStatus, CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking, BookingDocument } from './schema/booking.schema';
+import {
+  Restaurant,
+  RestaurantDocument,
+} from 'src/restaurant/schemas/restaurant.schema';
 
 @Injectable()
 export class BookingService {
   constructor(
     @InjectModel(Booking.name) private bookingModel: Model<BookingDocument>,
+    @InjectModel(Restaurant.name)
+    private restaurantModel: Model<RestaurantDocument>,
   ) {}
 
   // Create a new booking
@@ -88,6 +94,52 @@ export class BookingService {
     }
   }
 
+  async confirmBooking(id: string): Promise<Booking> {
+    try {
+      // Find the booking and update the status to CONFIRMED
+      const booking = await this.bookingModel
+        .findByIdAndUpdate(
+          id,
+          { status: BookingStatus.CONFIRMED }, // Update the booking status
+          { new: true },
+        )
+        .exec();
+
+      if (!booking) {
+        throw new NotFoundException(`Booking with ID ${id} not found.`);
+      }
+      console.log('restaurant id => ', booking.restaurant_id);
+
+      // Find the corresponding restaurant and add the booking ID to its bookings array
+      const restaurant = await this.restaurantModel
+        .findById(booking.restaurant_id)
+        .exec();
+
+      console.log('Find the relevant Restaurant', restaurant);
+
+      if (!restaurant) {
+        throw new NotFoundException(
+          `Restaurant with ID ${booking.restaurant_id} not found.`,
+        );
+      }
+
+      // Check if the booking ID already exists in the restaurant's bookings array
+      if (!restaurant.bookings.includes(booking._id as Types.ObjectId)) {
+        restaurant.bookings.push(booking._id as Types.ObjectId); // Add the booking ID
+
+        console.log('Updated Restaurant => ', restaurant);
+        await restaurant.save(); // Save the updated restaurant
+      }
+
+      return booking;
+    } catch (error) {
+      if (error.name === 'CastError') {
+        throw new BadRequestException(`Invalid booking ID: ${id}`);
+      }
+      throw new InternalServerErrorException('Failed to confirm booking.');
+    }
+  }
+
   // Delete a booking
   async deleteBookingById(id: string): Promise<void> {
     try {
@@ -102,4 +154,21 @@ export class BookingService {
       throw new InternalServerErrorException('Failed to delete booking.');
     }
   }
+
+  // Migration Script:--------------
+
+  // async addMissingBookingsFieldToRestaurants() {
+  //   const restaurants = await this.restaurantModel
+  //     .find({ bookings: { $exists: false } })
+  //     .exec();
+
+  //   for (const restaurant of restaurants) {
+  //     restaurant.bookings = []; // Initialize the bookings array
+  //     await restaurant.save(); // Save the updated restaurant
+  //   }
+
+  //   console.log(
+  //     `Updated ${restaurants.length} restaurants to include the bookings field.`,
+  //   );
+  // }
 }
