@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { BookingModule } from './booking/booking.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -14,12 +16,13 @@ import { AppService } from './app.service';
       envFilePath: '.env', // Specify the .env file
     }),
     MongooseModule.forRoot(process.env.MONGO_CONNECTION_STRING),
+    AuthModule,
     RestaurantModule,
     UsersModule,
     BookingModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
-  
 })
 export class AppModule {}

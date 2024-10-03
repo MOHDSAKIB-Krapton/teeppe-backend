@@ -94,6 +94,9 @@ export class Restaurant {
     required: true, // Ensure that this field is required
   })
   opening_hours: { day: string; openedtime: string; closedtime: string }[];
+
+  @Prop({ default: [], type: [{ type: Types.ObjectId, ref: 'Event' }] })
+  events: Types.ObjectId[];
 }
 
 export const RestaurantSchema = SchemaFactory.createForClass(Restaurant);
