@@ -25,7 +25,7 @@ export class Event extends Document {
   @Prop({ required: true })
   ticket_fee: number;
 
-  @Prop({ required: true })
+  @Prop()
   image_showcase: string; // Showcase image of the event
 
   @Prop([String])

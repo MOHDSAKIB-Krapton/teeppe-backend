@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsString,
   IsMongoId,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateEventDto {
@@ -29,6 +30,7 @@ export class CreateEventDto {
   ticket_fee: number;
 
   @IsString()
+  @IsOptional()
   image_showcase: string; // Showcase image of the event
 
   @IsArray()

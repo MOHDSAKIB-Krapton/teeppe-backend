@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -69,32 +70,49 @@ export class EventsService {
    * @throws BadRequestException if the restaurant is not approved by the admin.
    */
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
-    // Find the restaurant by its ID
-    const restaurant = await this.restaurantModel
-      .findById(createEventDto.restaurant)
-      .exec();
+    try {
+      // Find the restaurant by its ID
+      const restaurant = await this.restaurantModel
+        .findById(createEventDto.restaurant)
+        .exec();
 
-    // Check if the restaurant exists
-    if (!restaurant) {
-      throw new NotFoundException(
-        `Restaurant with ID ${createEventDto.restaurant} not found`,
-      );
+      // Check if the restaurant exists
+      if (!restaurant) {
+        throw new NotFoundException(
+          `Restaurant with ID ${createEventDto.restaurant} not found`,
+        );
+      }
+
+      // Check if the restaurant is verified by admin
+      if (restaurant.is_verified_by_admin !== RestaurantStatus.APPROVED) {
+        throw new BadRequestException(
+          `Restaurant is not approved by the admin`,
+        );
+      }
+
+      // Create the new event
+      const newEvent = new this.eventModel(createEventDto);
+
+      // Save the new event and check for any validation issues
+      const savedEvent = await newEvent.save();
+      if (!savedEvent) {
+        throw new InternalServerErrorException(
+          'Error occurred while saving the event',
+        );
+      }
+
+      // Add the event ID to the restaurant's events array
+      restaurant.events.push(savedEvent._id as Types.ObjectId);
+      await restaurant.save();
+
+      return savedEvent;
+    } catch (error) {
+      // Log the error for better debugging
+      console.error('Error in createEvent:', error);
+
+      // Rethrow the error to handle it in a global exception filter or middleware
+      throw error;
     }
-
-    // Check if the restaurant is verified by admin
-    if (restaurant.is_verified_by_admin !== RestaurantStatus.APPROVED) {
-      throw new BadRequestException(`Restaurant is not approved by the admin`);
-    }
-
-    // Create and save the new event if the restaurant is approved
-    const newEvent = new this.eventModel(createEventDto);
-    const savedEvent = await newEvent.save();
-
-    // Add the event ID to the restaurant's events array
-    restaurant.events.push(savedEvent._id as Types.ObjectId);
-    await restaurant.save();
-
-    return savedEvent;
   }
 
   /**
